@@ -1,19 +1,25 @@
-import React, { Component } from 'react';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
+import React, { Component } from "react";
+import { graphql } from "react-apollo";
+import gql from "graphql-tag";
 
 class LyricList extends Component {
   onLike(id, likes) {
     this.props.mutate({
       variables: { id },
+      // * When the user clicks on the like button, the likes count takes time to update
+      // * as it waits for the graphql mutation to return
+      // * This may lead to poor UX due to the slight delay
+      // * Hence, we use optimistic updates to update the count
+      // * and then update the count again when the mutation returns
       optimisticResponse: {
-        __typename: 'Mutation',
+        __typename: "Mutation",
+        // ? The below object structure is copied directly from the graphql mutation response
         likeLyric: {
           id,
-          __typename: 'LyricType',
-          likes: likes + 1
-        }
-      }
+          __typename: "LyricType",
+          likes: likes + 1,
+        },
+      },
     });
   }
 
@@ -37,11 +43,7 @@ class LyricList extends Component {
   }
 
   render() {
-    return (
-      <ul className="collection">
-        {this.renderLyrics()}
-      </ul>
-    );
+    return <ul className="collection">{this.renderLyrics()}</ul>;
   }
 }
 
